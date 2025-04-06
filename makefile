@@ -6,7 +6,7 @@ CFLAGS = -Wall -Wextra -Werror -std=c2x -nostdlib -ffreestanding -O3 -pedantic -
 # specify bash.  You also can't use a variable for this (e.g. $(SHELL)) as make
 # inexplicably tries to read something from the PATH and fails.  So hardcoding a
 # reference to bash seems to be the only way to get a working build.
-SRC_DIRECTORIES = src submodules/protocol/src
+SRC_DIRECTORIES = src
 C_FILES = $(shell bash -c "find $(SRC_DIRECTORIES) -type f -iname ""*.c""")
 H_FILES = $(shell bash -c "find $(SRC_DIRECTORIES) -type f -iname ""*.h""")
 O_FILES = $(patsubst %.c,obj/c/%.o,$(C_FILES))

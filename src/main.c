@@ -12,7 +12,6 @@
 #include "throw.h"
 #include "malloc_or_throw.h"
 #include "realloc_or_throw.h"
-#include "../submodules/protocol/src/write_u32s.h"
 
 const char *const prefix = "\\\\?\\hid#{00001124-0000-1000-8000-00805f9b34fb}_vid&0002057e_pid&200";
 const char *const suffix = "&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}";
@@ -22,12 +21,11 @@ char **device_paths = NULL;
 int *device_path_lengths = NULL;
 HANDLE *devices = NULL;
 
-#define UPPER_LEFT 0
-#define LOWER_LEFT 1
-#define UPPER_RIGHT 2
-#define LOWER_RIGHT 3
-
-#define MAXIMUM_COMMAND_LENGTH 128
+#define BUTTON_NONE 0
+#define UPPER_LEFT 1
+#define LOWER_LEFT 2
+#define UPPER_RIGHT 3
+#define LOWER_RIGHT 4
 
 int main(const int argc, const char *const *const argv)
 {
@@ -84,7 +82,7 @@ int main(const int argc, const char *const *const argv)
 
   log("Starting main loop...");
 
-  uint8_t command[MAXIMUM_COMMAND_LENGTH + 5] = {0, 0, 0, 0, 3, 0, 0, 0};
+  uint8_t command[16] = {8, 0, 0, 0, 3, 0, 0, 0, BUTTON_NONE, BUTTON_NONE, BUTTON_NONE, BUTTON_NONE};
   uint32_t command_length = 0;
   bool debounce_upper_left = false;
   bool debounce_lower_left = false;
@@ -312,7 +310,7 @@ int main(const int argc, const char *const *const argv)
 
     if (upper_left)
     {
-      if (command_length < MAXIMUM_COMMAND_LENGTH)
+      if (command_length < 4)
       {
         command[command_length + 8] = UPPER_LEFT;
       }
@@ -322,7 +320,7 @@ int main(const int argc, const char *const *const argv)
 
     if (lower_left)
     {
-      if (command_length < MAXIMUM_COMMAND_LENGTH)
+      if (command_length < 4)
       {
         command[command_length + 8] = LOWER_LEFT;
       }
@@ -332,7 +330,7 @@ int main(const int argc, const char *const *const argv)
 
     if (upper_right)
     {
-      if (command_length < MAXIMUM_COMMAND_LENGTH)
+      if (command_length < 4)
       {
         command[command_length + 8] = UPPER_RIGHT;
       }
@@ -342,7 +340,7 @@ int main(const int argc, const char *const *const argv)
 
     if (lower_right)
     {
-      if (command_length < MAXIMUM_COMMAND_LENGTH)
+      if (command_length < 4)
       {
         command[command_length + 8] = LOWER_RIGHT;
       }
@@ -352,7 +350,7 @@ int main(const int argc, const char *const *const argv)
 
     if (command_length > 0 && !debounce_upper_left && !debounce_lower_left && !debounce_upper_right && !debounce_lower_right)
     {
-      if (command_length > MAXIMUM_COMMAND_LENGTH)
+      if (command_length > 4)
       {
         log("Command is too long.");
       }
@@ -360,13 +358,14 @@ int main(const int argc, const char *const *const argv)
       {
         log("Sending %d-byte command...", command_length);
 
-        command_length += 4;
+        for (; command_length < 4; command_length++)
+        {
+          command[8 + command_length] = BUTTON_NONE;
+        }
 
-        write_u32s(&command_length, 1, 0, command, MAXIMUM_COMMAND_LENGTH + 8);
+        const size_t sent_bytes = sendto(socket_handle, (const char *const)command, 12, 0, (const struct sockaddr *const)&address, sizeof(address));
 
-        const size_t sent_bytes = sendto(socket_handle, (const char *const)command, command_length + 4, 0, (const struct sockaddr *const)&address, sizeof(address));
-
-        if (sent_bytes == command_length + 4)
+        if (sent_bytes == 12)
         {
           log("Sent %llu bytes.", sent_bytes);
         }

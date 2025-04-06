@@ -21,29 +21,29 @@ and pressing other SL/SR buttons to port 6772 on localhost.
 
 | Button   | Value |
 | -------- | ----- |
-| Left SL  | 0     |
-| Left SR  | 1     |
-| Right SR | 2     |
-| Right SL | 3     |
+| None     | 0     |
+| Left SL  | 1     |
+| Left SR  | 2     |
+| Right SR | 3     |
+| Right SL | 4     |
 
-Pressing left SL, right SL, right SR then right SL while holding left SR would
+Pressing left SL then right SL while holding left SR would
 generate the following bytes:
 
-| Byte | Description        |
-| ---- | ------------------ |
-| 9    | Length of command. |
-| 0    |                    |
-| 0    |                    |
-| 0    |                    |
-| 3    | Magic number.      |
-| 0    |                    |
-| 0    |                    |
-| 0    |                    |
-| 1    | Holding left SR.   |
-| 0    | Pressed left SL.   |
-| 3    | Pressed right SL.  |
-| 2    | Pressed right SR.  |
-| 3    | Pressed right SL.  |
+| Byte | Description                 |
+| ---- | --------------------------- |
+| 8    | Length of command.          |
+| 0    |                             |
+| 0    |                             |
+| 0    |                             |
+| 3    | Magic number.               |
+| 0    |                             |
+| 0    |                             |
+| 0    |                             |
+| 2    | Holding left SR.            |
+| 1    | Pressed left SL.            |
+| 4    | Pressed right SL.           |
+| 0    | No further buttons pressed. |
 
 Note that Steam may intercept these keys by default.  At the time of writing,
 you can disable this interception in:
